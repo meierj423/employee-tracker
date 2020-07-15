@@ -10,7 +10,7 @@ var connection = mysql.createConnection({
   user: "root",
   // Your password
   password: "password",
-  database: "top_songsDB",
+  database: "employee_trackerDB",
 });
 connection.connect(function (err) {
   if (err) throw err;
