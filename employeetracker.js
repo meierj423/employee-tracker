@@ -1,56 +1,84 @@
-var mysql = require("mysql");
-var inquirer = require("inquirer");
-require("console.table");
+const mysql = require("mysql");
+const inquirer = require("inquirer");
+const cTable = require("console.table");
 
-var connection = mysql.createConnection({
+const connection = mysql.createConnection({
   host: "localhost",
-  // Your port; if not 3306
   port: 3306,
-  // Your username
   user: "root",
-  // Your password
   password: "password",
   database: "employee_trackerDB",
 });
-connection.connect(function (err) {
-  if (err) throw err;
-  runSearch();
+connection.connect((err) => {
+  if (err) {
+    console.log("Unable to connect to data source.");
+  } else {
+    mainMenu();
+  }
 });
-function runSearch() {
-  inquirer
+function mainMenu() {
+  return inquirer
     .prompt({
       name: "action",
       type: "list",
       message: "What would you like to do?",
       choices: [
-        "Find songs by artist",
-        "Find all artists who appear more than once",
-        "Find data within a specific range",
-        "Search for a specific song",
-        "Find all songs by a given artist",
+        "Add department",
+        "Add role",
+        "Add employee",
+        "View all departments",
+        "View all roles",
+        "View all employees",
+        "Update employee role",
         "exit",
       ],
     })
     .then(function (answer) {
       switch (answer.action) {
-        case "Find songs by artist":
-          artistSearch();
+        case "Add department":
+          departmentAdd();
           break;
-        case "Find all artists who appear more than once":
-          multiSearch();
+        case "Add role":
+          roleAdd();
           break;
-        case "Find data within a specific range":
-          rangeSearch();
+        case "Add employee":
+          employeeAdd();
           break;
-        case "Search for a specific song":
-          songSearch();
+        case "View all departments":
+          departmentView();
           break;
-        case "Find all songs by a given artist":
-          songSearchByArtist();
+        case "View all roles":
+          roleView();
+          break;
+        case "View all employees":
+          employeeView();
+          break;
+        case "Update employee role":
+          roleUpdate();
           break;
         case "exit":
           connection.end();
           break;
       }
+    });
+}
+
+function departmentAdd() {
+  inquirer
+    .prompt({
+      name: "department",
+      type: "input",
+      message: "What is the name of the department?",
+    })
+    .then(function (answer) {
+      connection.query(
+        "INSERT INTO department (name) VALUE (?);",
+        answer.department,
+        function (err, res) {
+          if (err) throw err;
+          console.table(res);
+          menu();
+        }
+      );
     });
 }
