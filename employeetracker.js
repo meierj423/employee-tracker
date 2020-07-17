@@ -16,6 +16,7 @@ connection.connect((err) => {
     mainMenu();
   }
 });
+
 function mainMenu() {
   return inquirer
     .prompt({
@@ -36,25 +37,25 @@ function mainMenu() {
     .then(function (answer) {
       switch (answer.action) {
         case "Add department":
-          departmentAdd();
+          addDept();
           break;
         case "Add role":
-          roleAdd();
+          addRole();
           break;
         case "Add employee":
-          employeeAdd();
+          addEmployee();
           break;
         case "View all departments":
-          departmentView();
+          viewDept();
           break;
         case "View all roles":
-          roleView();
+          viewRole();
           break;
         case "View all employees":
-          employeeView();
+          viewEmployee();
           break;
         case "Update employee role":
-          roleUpdate();
+          updateRole();
           break;
         case "exit":
           connection.end();
@@ -63,7 +64,8 @@ function mainMenu() {
     });
 }
 
-function departmentAdd() {
+// Adds Department
+function addDept() {
   inquirer
     .prompt({
       name: "department",
@@ -72,13 +74,97 @@ function departmentAdd() {
     })
     .then(function (answer) {
       connection.query(
-        "INSERT INTO department (name) VALUE (?);",
+        "INSERT INTO department (name) VALUES (?);",
         answer.department,
-        function (err, res) {
-          if (err) throw err;
-          console.table(res);
-          menu();
+        (error, results) => {
+          console.log("=================");
+          console.log(`${answer.department} was added to departments`);
+          console.log("=================");
+
+          mainMenu();
         }
       );
     });
+}
+
+// Views Departments
+function viewDept() {
+  const deptSql = `SELECT department.id AS Dept_ID, department.name AS Name 
+  FROM department;`;
+  connection.query(deptSql, (error, results) => {
+    if (error) {
+      throw error;
+    }
+    console.table(results);
+    mainMenu();
+  });
+}
+
+// Adds Role
+function addRole() {
+  const deptSql = `SELECT department.id AS Dept_ID, department.name AS Name 
+  FROM department;`;
+  connection.query(deptSql, (error, results) => {
+    if (error) {
+      throw error;
+    }
+    let departments = [];
+    for (i = 0; i < results.length; i++) {
+      departments.push(results[i]);
+    }
+    inquirer
+      .prompt([
+        {
+          name: "roleTitle",
+          type: "input",
+          message: "What is the title of the role?",
+        },
+        {
+          name: "roleSalary",
+          type: "input",
+          message: "What is the role's salary?",
+        },
+        {
+          name: "roleDept",
+          type: "list",
+          message: "What department does this role belong to?",
+          choices: departments.map((u) => {
+            return {
+              name: u.Name,
+              value: u.Dept_ID,
+            };
+          }),
+        },
+      ])
+      .then(function (answer) {
+        connection.query(
+          "INSERT INTO role(title, salary, department_id) VALUES (?, ?, ?);",
+          [
+            answer.roleTitle,
+            parseInt(answer.roleSalary),
+            parseInt(answer.roleDept),
+          ],
+          (error, results) => {
+            console.log("=================");
+            console.log(`${answer.roleTitle} was added to roles`);
+            console.log("=================");
+
+            mainMenu();
+          }
+        );
+      });
+  });
+}
+
+// Views Roles
+// Views Departments
+function viewRole() {
+  const deptSql = `SELECT * FROM role`;
+  connection.query(deptSql, (error, results) => {
+    if (error) {
+      throw error;
+    }
+    console.table(results);
+    mainMenu();
+  });
 }
